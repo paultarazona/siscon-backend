@@ -1,0 +1,163 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  OPERADOR
+  ANALISTA
+}
+
+enum EstadoGeneral {
+  ACTIVO
+  INACTIVO
+}
+
+enum TipoCliente {
+  RESIDENCIAL
+  COMERCIAL
+  INDUSTRIAL
+  PUBLICO
+}
+
+enum EstadoMedidor {
+  ACTIVO
+  RETIRADO
+  EN_REVISION
+}
+
+enum EstadoLectura {
+  VALIDA
+  OBSERVADA
+  CORREGIDA
+  ANULADA
+}
+
+enum TipoIncidencia {
+  CONSUMO_ALTO
+  CONSUMO_BAJO
+  LECTURA_INVALIDA
+  MEDIDOR_OBSERVADO
+  SIN_LECTURA
+}
+
+model Usuario {
+  id            Int                  @id @default(autoincrement())
+  nombres       String
+  apellidos     String
+  email         String               @unique
+  passwordHash  String
+  rol           Role                 @default(OPERADOR)
+  estado        EstadoGeneral        @default(ACTIVO)
+  createdAt     DateTime             @default(now())
+  lecturas      Lectura[]
+  importaciones ImportacionDataset[]
+}
+
+model ZonaOperativa {
+  id           Int           @id @default(autoincrement())
+  departamento String
+  provincia    String
+  distrito     String
+  nombreZona   String
+  codigoZona   String        @unique
+  estado       EstadoGeneral @default(ACTIVO)
+  suministros  Suministro[]
+}
+
+model Suministro {
+  id                   Int           @id @default(autoincrement())
+  codigoSuministro     String        @unique
+  tipoCliente          TipoCliente
+  direccionReferencial String?
+  zonaId               Int
+  estado               EstadoGeneral @default(ACTIVO)
+  fechaAlta            DateTime      @default(now())
+  zona                 ZonaOperativa @relation(fields: [zonaId], references: [id])
+  medidores            Medidor[]
+
+  @@index([zonaId])
+  @@index([tipoCliente])
+}
+
+model Medidor {
+  id               Int           @id @default(autoincrement())
+  numeroMedidor    String        @unique
+  suministroId     Int
+  marca            String?
+  modelo           String?
+  fechaInstalacion DateTime?
+  estado           EstadoMedidor @default(ACTIVO)
+  suministro       Suministro    @relation(fields: [suministroId], references: [id])
+  lecturas         Lectura[]
+
+  @@index([suministroId])
+}
+
+model Periodo {
+  id          Int           @id @default(autoincrement())
+  anio        Int
+  mes         Int
+  fechaInicio DateTime
+  fechaFin    DateTime
+  estado      EstadoGeneral @default(ACTIVO)
+  lecturas    Lectura[]
+
+  @@unique([anio, mes])
+}
+
+model Lectura {
+  id              Int           @id @default(autoincrement())
+  medidorId       Int
+  periodoId       Int
+  lecturaAnterior Decimal       @db.Decimal(12, 2)
+  lecturaActual   Decimal       @db.Decimal(12, 2)
+  consumoKwh      Decimal       @db.Decimal(12, 2)
+  fechaLectura    DateTime
+  estadoLectura   EstadoLectura @default(VALIDA)
+  observacion     String?
+  registradoPorId Int
+  fechaRegistro   DateTime      @default(now())
+  medidor         Medidor       @relation(fields: [medidorId], references: [id])
+  periodo         Periodo       @relation(fields: [periodoId], references: [id])
+  registradoPor   Usuario       @relation(fields: [registradoPorId], references: [id])
+  incidencias     Incidencia[]
+
+  @@unique([medidorId, periodoId])
+  @@index([periodoId])
+  @@index([medidorId])
+  @@index([registradoPorId])
+}
+
+model Incidencia {
+  id             Int            @id @default(autoincrement())
+  lecturaId      Int
+  tipoIncidencia TipoIncidencia
+  descripcion    String
+  nivel          String
+  estado         String         @default("PENDIENTE")
+  fechaDeteccion DateTime       @default(now())
+  lectura        Lectura        @relation(fields: [lecturaId], references: [id])
+
+  @@index([lecturaId])
+  @@index([tipoIncidencia])
+}
+
+model ImportacionDataset {
+  id               Int      @id @default(autoincrement())
+  nombreArchivo    String
+  totalRegistros   Int
+  registrosValidos Int
+  registrosError   Int
+  fechaImportacion DateTime @default(now())
+  importadoPorId   Int
+  estado           String
+  importadoPor     Usuario  @relation(fields: [importadoPorId], references: [id])
+
+  @@index([importadoPorId])
+}

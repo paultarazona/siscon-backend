@@ -1,0 +1,1 @@
+import { Module } from '@nestjs/common'; import { PrismaService } from '../prisma/prisma.service'; import { PeriodosController } from './periodos.controller'; import { PeriodosService } from './periodos.service'; @Module({controllers:[PeriodosController],providers:[PeriodosService,PrismaService]}) export class PeriodosModule {}

@@ -83,6 +83,7 @@ model Suministro {
 
   @@index([zonaId])
   @@index([tipoCliente])
+  @@index([estado])
 }
 
 model Medidor {
@@ -97,6 +98,7 @@ model Medidor {
   lecturas         Lectura[]
 
   @@index([suministroId])
+  @@index([estado])
 }
 
 model Periodo {
@@ -132,6 +134,8 @@ model Lectura {
   @@index([periodoId])
   @@index([medidorId])
   @@index([registradoPorId])
+  @@index([fechaRegistro])
+  @@index([estadoLectura])
 }
 
 model Incidencia {
@@ -146,6 +150,7 @@ model Incidencia {
 
   @@index([lecturaId])
   @@index([tipoIncidencia])
+  @@index([estado])
 }
 
 model ImportacionDataset {

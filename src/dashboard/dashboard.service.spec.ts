@@ -27,11 +27,12 @@ describe('DashboardService', () => {
 
   describe('resumen', () => {
     it('retorna resumen con datos agregados', async () => {
-      // $queryRaw se llama 3 veces en Promise.all, medidor.count 1 vez
+      // $queryRaw se llama 4 veces en Promise.all, medidor.count 1 vez
       mockPrisma.$queryRaw
         .mockResolvedValueOnce([{ total: 6000 }])       // lecturas
         .mockResolvedValueOnce([{ total: new Prisma.Decimal(150000) }]) // consumo
-        .mockResolvedValueOnce([{ total: 50 }]);        // incidencias
+        .mockResolvedValueOnce([{ total: 50 }])         // incidencias
+        .mockResolvedValueOnce([{ total: 12 }]);        // lecturas observadas
       mockPrisma.medidor.count.mockResolvedValue(100);
 
       const result = await service.resumen({});
@@ -39,11 +40,13 @@ describe('DashboardService', () => {
       expect(result.totalLecturas).toBe(6000);
       expect(Number(result.consumoTotalKwh)).toBe(150000);
       expect(result.totalIncidencias).toBe(50);
+      expect(result.lecturasObservadas).toBe(12);
       expect(result.medidoresActivos).toBe(100);
     });
 
     it('maneja valores vacíos', async () => {
       mockPrisma.$queryRaw
+        .mockResolvedValueOnce([])
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([])
         .mockResolvedValueOnce([]);
@@ -59,13 +62,14 @@ describe('DashboardService', () => {
       mockPrisma.$queryRaw
         .mockResolvedValueOnce([{ total: 100 }])
         .mockResolvedValueOnce([{ total: new Prisma.Decimal(5000) }])
-        .mockResolvedValueOnce([{ total: 5 }]);
+        .mockResolvedValueOnce([{ total: 5 }])
+        .mockResolvedValueOnce([{ total: 2 }]);
       mockPrisma.medidor.count.mockResolvedValue(20);
 
       await service.resumen({ anioDesde: 2020, anioHasta: 2024, zonaId: 1 });
 
-      // 3 llamadas a $queryRaw + 1 a medidor.count
-      expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(3);
+      // 4 llamadas a $queryRaw + 1 a medidor.count
+      expect(mockPrisma.$queryRaw).toHaveBeenCalledTimes(4);
       expect(mockPrisma.medidor.count).toHaveBeenCalledTimes(1);
     });
   });

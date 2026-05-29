@@ -1,12 +1,48 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { parse } from 'csv-parse/sync';
+import { buildPaginatedResponse, PaginatedResult } from '../common/dto/pagination.dto';
 import { LecturasService } from '../lecturas/lecturas.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { ImportacionFilterDto } from './dto/importacion-filter.dto';
 
 @Injectable()
 export class ImportacionesService {
   constructor(private prisma: PrismaService, private lecturas: LecturasService) {}
-  findAll(){return this.prisma.importacionDataset.findMany({include:{importadoPor:{select:{id:true,nombres:true,apellidos:true,email:true}}},orderBy:{fechaImportacion:'desc'}});}
+
+  async findAll(q: ImportacionFilterDto): Promise<PaginatedResult> {
+    const page = q.page ?? 1;
+    const limit = q.limit ?? 20;
+
+    const where: Prisma.ImportacionDatasetWhereInput = {
+      estado: q.estado,
+      importadoPorId: q.importadoPorId,
+    };
+
+    const orderByField = this.resolveSortField(q.sortBy);
+    const orderByDir = q.order === 'asc' ? 'asc' : 'desc';
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.importacionDataset.findMany({
+        where,
+        include: { importadoPor: { select: { id: true, nombres: true, apellidos: true, email: true } } },
+        orderBy: { [orderByField]: orderByDir },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.importacionDataset.count({ where }),
+    ]);
+
+    return buildPaginatedResponse(data, total, page, limit);
+  }
+
+  private resolveSortField(sortBy?: string): string {
+    const allowed: Record<string, string> = {
+      fechaImportacion: 'fechaImportacion',
+      id: 'id',
+    };
+    return allowed[sortBy ?? ''] ?? 'fechaImportacion';
+  }
   async importarCsv(file: Express.Multer.File, userId: number) {
     if (!file) throw new BadRequestException('Debe enviar un archivo CSV en el campo file');
     const rows = parse(file.buffer.toString('utf8'), { columns: true, skip_empty_lines: true, trim: true }) as Record<string,string>[];

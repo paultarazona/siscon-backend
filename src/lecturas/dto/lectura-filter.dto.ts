@@ -1,6 +1,6 @@
-import { EstadoLectura } from '@prisma/client';
+import { EstadoLectura, TipoCliente } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class LecturaFilterDto {
   @IsOptional()
@@ -21,6 +21,10 @@ export class LecturaFilterDto {
   zonaId?: number;
 
   @IsOptional()
+  @IsString()
+  distrito?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   suministroId?: number;
@@ -35,6 +39,14 @@ export class LecturaFilterDto {
   estadoLectura?: EstadoLectura;
 
   @IsOptional()
+  @IsEnum(TipoCliente)
+  tipoCliente?: TipoCliente;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
@@ -46,4 +58,12 @@ export class LecturaFilterDto {
   @Min(1)
   @Max(100)
   limit?: number = 20;
+
+  @IsOptional()
+  @IsString()
+  sortBy?: string;
+
+  @IsOptional()
+  @IsEnum(['asc', 'desc'])
+  order?: 'asc' | 'desc';
 }

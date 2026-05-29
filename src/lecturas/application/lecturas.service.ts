@@ -85,4 +85,13 @@ export class LecturasService {
     await this.findOne(id);
     return this.lecturas.deleteWithIncidencias(id);
   }
+
+  async prepararRegistro(medidorId: number) {
+    const result = await this.lecturas.prepareForRegistro(medidorId);
+    if (!result) throw new NotFoundException('Medidor no encontrado');
+    if (result.medidor.estado !== EstadoMedidor.ACTIVO) {
+      throw new BadRequestException('El medidor debe estar ACTIVO para registrar lectura');
+    }
+    return result;
+  }
 }

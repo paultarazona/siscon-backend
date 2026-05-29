@@ -106,6 +106,31 @@ codigo_suministro,numero_medidor,zona,tipo_cliente,anio,mes,lectura_anterior,lec
 SUM-000001,MED-000001,Zona Centro,RESIDENCIAL,2024,1,1000,1120,2024-01-20
 ```
 
+## Base de datos desde SQL (sin Node.js/Prisma)
+
+Si no tenés Node.js ni Prisma, podés crear la base de datos directamente con los scripts SQL provistos en `sql/`:
+
+```bash
+# 1. Crear la base de datos
+psql -U postgres -c "CREATE DATABASE enosa;"
+
+# 2. Crear tablas e índices
+psql -U postgres -d enosa -f sql/01-schema.sql
+
+# 3. Insertar datos de prueba (zonas, suministros, lecturas, incidencias)
+psql -U postgres -d enosa -f sql/02-seed.sql
+```
+
+Usuarios de prueba incluidos en el seed:
+
+| Rol | Email | Password |
+|-----|-------|----------|
+| ADMIN | `admin@enosa.test` | `Admin123!` |
+| ANALISTA | `analista.operaciones@enosa.test` | `Admin123!` |
+| OPERADOR | `operador.piura@enosa.test` | `Admin123!` |
+
+> Los passwords tienen hash bcrypt; para autenticarse usar los valores en texto plano de la tabla.
+
 ## Documentación técnica
 
 Ver `/docs` para arquitectura, convenciones, contratos API, modelo de datos, flujo de lecturas, dashboard/reportes, importación y reglas de negocio.

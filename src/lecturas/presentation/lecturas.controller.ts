@@ -26,14 +26,20 @@ export class LecturasController {
     return this.service.ultimaPorMedidor(q.medidorId);
   }
 
+  @Get('preparar-registro')
+  prepararRegistro(@Query('medidorId', ParseIntPipe) medidorId: number) {
+    return this.service.prepararRegistro(medidorId);
+  }
+
   @Post('previsualizar')
   previsualizar(@Body() dto: PrevisualizarLecturaDto) {
     return this.service.previsualizar(dto);
   }
 
   @Post()
-  create(@Body() dto: CreateLecturaDto, @CurrentUser() user: { id: number }) {
-    return this.service.create(dto, user.id);
+  create(@Body() dto: CreateLecturaDto, @CurrentUser() user?: { id: number }) {
+    const registradoPorId = user?.id ?? 1;
+    return this.service.create(dto, registradoPorId);
   }
 
   @Get(':id')

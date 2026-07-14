@@ -82,6 +82,7 @@ describe('SuministrosService', () => {
   describe('create', () => {
     it('crea suministro', async () => {
       const dto = { codigoSuministro: 'SUM-NEW', tipoCliente: TipoCliente.RESIDENCIAL, zonaId: 1 };
+      mockPrisma.suministro.findUnique.mockResolvedValue(null);
       mockPrisma.suministro.create.mockResolvedValue({ id: 99, ...dto });
 
       const result = await service.create(dto);

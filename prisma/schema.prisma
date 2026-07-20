@@ -38,6 +38,12 @@ enum EstadoLectura {
   ANULADA
 }
 
+enum EstadoIncidencia {
+  PENDIENTE
+  DERIVADA_A_SIGOM
+  RESUELTA
+}
+
 enum TipoIncidencia {
   CONSUMO_ALTO
   CONSUMO_BAJO
@@ -83,6 +89,7 @@ model Suministro {
 
   @@index([zonaId])
   @@index([tipoCliente])
+  @@index([estado])
 }
 
 model Medidor {
@@ -97,6 +104,7 @@ model Medidor {
   lecturas         Lectura[]
 
   @@index([suministroId])
+  @@index([estado])
 }
 
 model Periodo {
@@ -132,20 +140,40 @@ model Lectura {
   @@index([periodoId])
   @@index([medidorId])
   @@index([registradoPorId])
+  @@index([fechaRegistro])
+  @@index([estadoLectura])
 }
 
 model Incidencia {
-  id             Int            @id @default(autoincrement())
-  lecturaId      Int
-  tipoIncidencia TipoIncidencia
-  descripcion    String
-  nivel          String
-  estado         String         @default("PENDIENTE")
-  fechaDeteccion DateTime       @default(now())
-  lectura        Lectura        @relation(fields: [lecturaId], references: [id])
+  id                 Int               @id @default(autoincrement())
+  lecturaId          Int
+  tipoIncidencia     TipoIncidencia
+  descripcion        String
+  nivel              String
+  estado             EstadoIncidencia  @default(PENDIENTE)
+  fechaDeteccion     DateTime          @default(now())
+  sigomWorkOrderId   String?           @unique
+  sigomWorkOrderCode String?
+  derivedAt          DateTime?
+  resolvedAt         DateTime?
+  lectura            Lectura           @relation(fields: [lecturaId], references: [id])
+  integrationInbox   IntegrationInbox[]
 
   @@index([lecturaId])
   @@index([tipoIncidencia])
+  @@index([estado])
+}
+
+model IntegrationInbox {
+  id             String     @id @default(uuid()) @db.Uuid
+  idempotencyKey String     @unique
+  payloadHash    String
+  responseBody   Json
+  incidentId     Int
+  createdAt      DateTime   @default(now())
+  incident       Incidencia @relation(fields: [incidentId], references: [id])
+
+  @@index([incidentId])
 }
 
 model ImportacionDataset {

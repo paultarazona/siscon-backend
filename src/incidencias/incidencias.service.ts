@@ -2,11 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { buildPaginatedResponse, PaginatedResult } from '../common/dto/pagination.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { IntegrationsService } from '../integrations/integrations.service';
 import { IncidenciaFilterDto } from './dto/incidencia-filter.dto';
 
 @Injectable()
 export class IncidenciasService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly integrationsService: IntegrationsService,
+  ) {}
 
   async findAll(q: IncidenciaFilterDto): Promise<PaginatedResult> {
     const page = q.page ?? 1;
@@ -15,6 +19,7 @@ export class IncidenciasService {
     const where: Prisma.IncidenciaWhereInput = {
       tipoIncidencia: q.tipoIncidencia,
       estado: q.estado,
+      nivel: q.nivel,
     };
 
     // Build nested where clause for lectura relation
@@ -61,5 +66,9 @@ export class IncidenciasService {
     const exists = await this.prisma.incidencia.findUnique({ where: { id } });
     if (!exists) throw new NotFoundException('Incidencia no encontrada');
     return this.prisma.incidencia.update({ where: { id }, data: { estado: 'RESUELTA' } });
+  }
+
+  async deriveToSigom(id: number) {
+    return this.integrationsService.deriveToSigom(id);
   }
 }

@@ -1,6 +1,6 @@
-import { TipoIncidencia } from '@prisma/client';
+import { EstadoIncidencia, TipoIncidencia } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsIn, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class IncidenciaFilterDto {
   @IsOptional()
@@ -8,8 +8,12 @@ export class IncidenciaFilterDto {
   tipoIncidencia?: TipoIncidencia;
 
   @IsOptional()
-  @IsString()
-  estado?: string;
+  @IsEnum(EstadoIncidencia)
+  estado?: EstadoIncidencia;
+
+  @IsOptional()
+  @IsIn(['BAJO', 'MEDIO', 'ALTO', 'CRITICO'])
+  nivel?: string;
 
   @IsOptional()
   @Type(() => Number)

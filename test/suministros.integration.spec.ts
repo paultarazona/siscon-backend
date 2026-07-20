@@ -151,6 +151,7 @@ describe('SuministrosService (Integration)', () => {
       const result = await service.create({
         codigoSuministro: 'SUM-NEW-001',
         tipoCliente: TipoCliente.INDUSTRIAL,
+        direccionReferencial: 'Av. Industrial 101',
         zonaId: testData.zone.id,
       });
 

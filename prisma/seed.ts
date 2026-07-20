@@ -1,5 +1,6 @@
 import {
   EstadoGeneral,
+  EstadoIncidencia,
   EstadoLectura,
   EstadoMedidor,
   PrismaClient,
@@ -163,9 +164,9 @@ async function main() {
   /* ---------- 7.1 USUARIOS ---------- */
   console.log('👤 Creando usuarios...');
   const usuariosData = [
-    { nombres: 'Administrador', apellidos: 'Sistema', email: 'admin@enosa.test', passwordHash: await bcrypt.hash('Admin123456', 10), rol: Role.ADMIN },
-    { nombres: 'Ana', apellidos: 'Operaciones', email: 'analista.operaciones@enosa.test', passwordHash: await bcrypt.hash('Test123456', 10), rol: Role.ANALISTA },
-    { nombres: 'Luis', apellidos: 'Reportes', email: 'analista.reportes@enosa.test', passwordHash: await bcrypt.hash('Test123456', 10), rol: Role.ANALISTA },
+    { nombres: 'Administrador', apellidos: 'ENOSA', email: 'admin@enosa.test', passwordHash: await bcrypt.hash('Admin123456', 10), rol: Role.ADMIN },
+    { nombres: 'Ana', apellidos: 'Operaciones', email: 'ana.operaciones@enosa.test', passwordHash: await bcrypt.hash('Test123456', 10), rol: Role.ANALISTA },
+    { nombres: 'Luis', apellidos: 'Reportes', email: 'luis.reportes@enosa.test', passwordHash: await bcrypt.hash('Test123456', 10), rol: Role.ANALISTA },
     { nombres: 'Carlos', apellidos: 'Piura', email: 'operador.piura@enosa.test', passwordHash: await bcrypt.hash('Test123456', 10), rol: Role.OPERADOR },
     { nombres: 'María', apellidos: 'Sullana', email: 'operador.sullana@enosa.test', passwordHash: await bcrypt.hash('Test123456', 10), rol: Role.OPERADOR },
     { nombres: 'Jorge', apellidos: 'Talara', email: 'operador.talara@enosa.test', passwordHash: await bcrypt.hash('Test123456', 10), rol: Role.OPERADOR },
@@ -343,7 +344,7 @@ async function main() {
     tipoIncidencia: TipoIncidencia;
     descripcion: string;
     nivel: string;
-    estado: string;
+    estado: EstadoIncidencia;
     fechaDeteccion: Date;
   }[] = [];
 
@@ -527,7 +528,11 @@ async function main() {
       }
 
       if (tipoInc && rng.next() < 0.80) {
-      const estadosInc = ['PENDIENTE', 'EN_REVISION', 'CERRADA'];
+      const estadosInc = [
+        EstadoIncidencia.PENDIENTE,
+        EstadoIncidencia.DERIVADA_A_SIGOM,
+        EstadoIncidencia.RESUELTA,
+      ];
       const probs = [0.40, 0.30, 0.30];
       const r2 = rng.next();
       const estadoInc = r2 < probs[0] ? estadosInc[0] : r2 < probs[0] + probs[1] ? estadosInc[1] : estadosInc[2];

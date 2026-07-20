@@ -1,6 +1,6 @@
 import { EstadoGeneral, TipoCliente } from '@prisma/client';
-import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class SuministroFilterDto {
   @IsOptional()
@@ -15,6 +15,11 @@ export class SuministroFilterDto {
   @IsOptional()
   @IsEnum(EstadoGeneral)
   estado?: EstadoGeneral;
+
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  observado?: boolean;
 
   @IsOptional()
   @IsString()

@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { EstadoGeneral, TipoCliente } from '@prisma/client';
+import { EstadoGeneral, EstadoMedidor, TipoCliente } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SuministrosService } from './suministros.service';
 
@@ -63,6 +63,18 @@ describe('SuministrosService', () => {
       expect(result.meta.total).toBe(0);
       expect(result.meta.hasNextPage).toBe(false);
     });
+
+    it('filtra suministros con al menos un medidor en revisión', async () => {
+      (mockPrisma.$transaction as jest.Mock).mockResolvedValue([[], 0]);
+
+      await service.findAll({ observado: true });
+
+      expect(mockPrisma.suministro.findMany).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({
+          medidores: { some: { estado: EstadoMedidor.EN_REVISION } },
+        }),
+      }));
+    });
   });
 
   describe('findOne', () => {
@@ -81,7 +93,12 @@ describe('SuministrosService', () => {
 
   describe('create', () => {
     it('crea suministro', async () => {
-      const dto = { codigoSuministro: 'SUM-NEW', tipoCliente: TipoCliente.RESIDENCIAL, zonaId: 1 };
+      const dto = {
+        codigoSuministro: 'SUM-NEW',
+        tipoCliente: TipoCliente.RESIDENCIAL,
+        direccionReferencial: 'Av. Prueba 123',
+        zonaId: 1,
+      };
       mockPrisma.suministro.findUnique.mockResolvedValue(null);
       mockPrisma.suministro.create.mockResolvedValue({ id: 99, ...dto });
 

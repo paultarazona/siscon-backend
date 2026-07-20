@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { EstadoMedidor, Prisma } from '@prisma/client';
 import { buildPaginatedResponse, PaginatedResult } from '../common/dto/pagination.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateSuministroDto } from './dto/create-suministro.dto';
@@ -18,6 +18,7 @@ export class SuministrosService {
       zonaId: q.zonaId,
       tipoCliente: q.tipoCliente,
       estado: q.estado,
+      ...(q.observado ? { medidores: { some: { estado: EstadoMedidor.EN_REVISION } } } : {}),
     };
 
     if (q.search) {
